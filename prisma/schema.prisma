@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model TradingAccount {
+  id             Int      @id @default(autoincrement())
+  name           String
+  broker         String
+  accountNumber  String   @unique @map("account_number")
+  server         String
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tradeSignals   TradeSignal[]
+  tradeOrders    TradeOrder[]
+
+  @@map("trading_accounts")
+}
+
+model Strategy {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  description   String?
+  isActive      Boolean  @default(true) @map("is_active")
+  configuration String   @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tradeSignals  TradeSignal[]
+
+  @@map("strategies")
+}
+
+model TradeSignal {
+  id          Int      @id @default(autoincrement())
+  symbol      String
+  signal      String
+  confidence  Int?
+  strategyId  Int                        @map("strategy_id")
+  accountId   Int                        @map("account_id")
+  createdAt   DateTime                   @default(now()) @map("created_at")
+
+  strategy    Strategy   @relation(fields: [strategyId], references: [id])
+  account     TradingAccount @relation(fields: [accountId], references: [id])
+  order       TradeOrder?
+
+  @@map("trade_signals")
+}
+
+model TradeOrder {
+  id          Int       @id @default(autoincrement())
+  ticket      BigInt?   @unique
+  symbol      String
+  action      String
+  lot         Float
+  entryPrice  Float?    @map("entry_price")
+  stopLoss    Float?    @map("stop_loss")
+  takeProfit  Float?    @map("take_profit")
+  status      String    @default("PENDING")
+  openedAt    DateTime? @map("opened_at")
+  closedAt    DateTime? @map("closed_at")
+  profit      Float?
+  signalId    Int?      @unique @map("signal_id")
+  accountId   Int       @map("account_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  signal      TradeSignal?  @relation(fields: [signalId], references: [id])
+  account     TradingAccount @relation(fields: [accountId], references: [id])
+
+  @@map("trade_orders")
+}
+
+model MarketData {
+  id        Int      @id @default(autoincrement())
+  symbol    String
+  timeframe String
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  volume    Int
+  timestamp DateTime
+
+  @@index([symbol, timeframe, timestamp])
+  @@map("market_data")
+}
+
+model RiskConfiguration {
+  id              Int   @id @default(autoincrement())
+  riskPerTrade    Float @default(1.0) @map("risk_per_trade")
+  maxDailyLoss    Float @default(3.0) @map("max_daily_loss")
+  maxDrawdown     Float @default(10.0) @map("max_drawdown")
+  maxOpenPositions Int  @default(5) @map("max_open_positions")
+
+  @@map("risk_configurations")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  entity    String
+  entityId  Int?     @map("entity_id")
+  details   String?
+  userId    Int?     @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("USER")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
