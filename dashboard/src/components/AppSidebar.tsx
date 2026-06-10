@@ -5,7 +5,7 @@ import {
   FundOutlined,
   ExperimentOutlined,
   AlertOutlined,
-  SignalOutlined,
+  SignalFilled,
   BarChartOutlined,
   AuditOutlined,
 } from '@ant-design/icons';
@@ -18,7 +18,7 @@ const menuItems = [
   { key: '/positions', icon: <FundOutlined />, label: 'Positions' },
   { key: '/strategies', icon: <ExperimentOutlined />, label: 'Strategies' },
   { key: '/risk', icon: <AlertOutlined />, label: 'Risk Management' },
-  { key: '/signals', icon: <SignalOutlined />, label: 'Signals' },
+  { key: '/signals', icon: <SignalFilled />, label: 'Signals' },
   { key: '/backtest', icon: <BarChartOutlined />, label: 'Backtesting' },
   { key: '/audit-logs', icon: <AuditOutlined />, label: 'Audit Logs' },
 ];
