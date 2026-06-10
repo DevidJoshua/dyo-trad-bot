@@ -243,7 +243,7 @@ router.get('/admin/ai/config', authenticate, authorize('ADMIN'), async (_req: Re
     const config = await chatbotService.getConfig();
     if (config) {
       const { apiKey, ...safe } = config;
-      res.json({ ...safe, apiKey: apiKey ? '••••••••' : '' });
+      res.json({ ...safe, apiKey: apiKey ? '********' : '' });
     } else {
       res.json(null);
     }
@@ -257,7 +257,7 @@ router.put('/admin/ai/config', authenticate, authorize('ADMIN'), async (req: Req
     const config = await chatbotService.updateConfig(req.body);
     await auditService.log('UPDATE', 'AiConfiguration', config.id, 'AI config updated');
     const { apiKey, ...safe } = config;
-    res.json({ ...safe, apiKey: apiKey ? '••••••••' : '' });
+    res.json({ ...safe, apiKey: apiKey ? '********' : '' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update AI config' });
   }

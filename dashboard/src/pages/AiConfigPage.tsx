@@ -153,9 +153,9 @@ export default function AiConfigPage() {
 
                   <Form.Item name="apiKey" label="API Key">
                     <Input.Password
-                      placeholder={config?.apiKey === '••••••••' ? 'Enter new key to change' : 'Enter API key'}
+                      placeholder={config?.apiKey === '********' ? 'Enter new key to change' : 'Enter API key'}
                     />
-                    {config?.apiKey === '••••••••' && (
+                    {config?.apiKey === '********' && (
                       <Text type="secondary" style={{ fontSize: 12 }}>Key is set. Leave empty to keep existing.</Text>
                     )}
                   </Form.Item>
@@ -215,9 +215,9 @@ export default function AiConfigPage() {
                     extra="Get from @BotFather on Telegram"
                   >
                     <Input.Password
-                      placeholder={telegram?.botToken === '••••••••' ? 'Enter new token to change' : 'Enter bot token'}
+                      placeholder={telegram?.botToken === '********' ? 'Enter new token to change' : 'Enter bot token'}
                     />
-                    {telegram?.botToken === '••••••••' && (
+                    {telegram?.botToken === '********' && (
                       <Text type="secondary" style={{ fontSize: 12 }}>Token is set. Leave empty to keep existing.</Text>
                     )}
                   </Form.Item>

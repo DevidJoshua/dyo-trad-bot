@@ -96,12 +96,12 @@ export class NotificationService {
   async getConfig() {
     const db = await prisma.telegramConfig.findFirst();
     if (db) {
-      return { enabled: db.enabled, chatId: db.chatId, botToken: db.botToken ? '••••••••' : '' };
+      return { enabled: db.enabled, chatId: db.chatId, botToken: db.botToken ? '********' : '' };
     }
     return {
       enabled: !!config.telegram.botToken,
       chatId: config.telegram.chatId,
-      botToken: config.telegram.botToken ? '••••••••' : '',
+      botToken: config.telegram.botToken ? '********' : '',
     };
   }
 
