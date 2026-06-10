@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Typography, Button, Space, Switch, Tag, message } from 'antd';
 import { LogoutOutlined, RobotOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 
 const { Header } = Layout;
 
@@ -14,7 +14,7 @@ export default function AppHeader() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await axios.get('/api/admin/ai-pilot/status');
+        const res = await api.get('/admin/ai-pilot/status');
         setAiPilotOn(res.data.enabled);
       } catch {
         // not critical
@@ -27,7 +27,7 @@ export default function AppHeader() {
 
   const handleToggle = async (checked: boolean) => {
     try {
-      const res = await axios.post('/api/admin/ai-pilot/toggle', { enabled: checked });
+      const res = await api.post('/admin/ai-pilot/toggle', { enabled: checked });
       setAiPilotOn(res.data.enabled);
       message[checked ? 'success' : 'warning'](`AI Pilot ${checked ? 'activated' : 'deactivated'}`);
     } catch {

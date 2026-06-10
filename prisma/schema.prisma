@@ -140,6 +140,7 @@ model AiConfiguration {
   systemPrompt     String   @default("You are a helpful assistant for the TradBot platform.")
   welcomeMessage   String   @default("Hello! How can I help you today?")
   suggestedQuestions String @default("[]")
+  chatMode         String   @default("chat") @map("chat_mode")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 

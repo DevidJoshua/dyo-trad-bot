@@ -71,6 +71,7 @@ async function main() {
       model: 'gpt-4o-mini',
       systemPrompt: 'You are a helpful trading assistant for the TradBot platform. You help users understand their trading data, platform features, and provide insights based on the knowledge base.',
       welcomeMessage: 'Hello! I am your AI trading assistant. Ask me about your positions, strategies, risk settings, or anything about the platform.',
+      chatMode: 'chat',
       suggestedQuestions: JSON.stringify([
         'Show my open positions',
         'What strategies are active?',

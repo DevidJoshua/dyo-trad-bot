@@ -28,7 +28,6 @@ export class ChatbotService {
     const session = await conversationService.getOrCreateSession(sessionId);
     await conversationService.addMessage(session.sessionId, 'user', message);
 
-    const history = await conversationService.getHistory(session.sessionId);
     const knowledge = await knowledgeService.getRelevantContext(message);
 
     const tradingData = await this.getTradingSummary();
@@ -52,8 +51,14 @@ export class ChatbotService {
       .join('\n');
 
     try {
+      const isResponseMode = config.chatMode === 'response';
+      const history = isResponseMode
+        ? [{ role: 'user', content: message } as { role: string; content: string }]
+        : await conversationService.getHistory(session.sessionId);
       const reply = await provider.chat(history, systemPrompt);
-      await conversationService.addMessage(session.sessionId, 'assistant', reply);
+      if (!isResponseMode) {
+        await conversationService.addMessage(session.sessionId, 'assistant', reply);
+      }
 
       const suggestions = await this.getSuggestions(message);
 
@@ -120,6 +125,7 @@ export class ChatbotService {
     systemPrompt?: string;
     welcomeMessage?: string;
     suggestedQuestions?: string[];
+    chatMode?: string;
   }) {
     this.providerCache.clear();
     const existing = await prisma.aiConfiguration.findFirst();

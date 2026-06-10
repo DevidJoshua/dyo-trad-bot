@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
   Card, Form, Select, Input, Switch, Button, Typography,
-  Tag, Descriptions, message, Spin, Tabs, Space, Table,
+  Tag, Descriptions, message, Spin, Tabs, Space, Table, Radio,
 } from 'antd';
-import axios from 'axios';
+import api from '../services/api';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -23,10 +23,10 @@ export default function AiConfigPage() {
   const fetchData = async () => {
     try {
       const [cfgRes, knRes, anRes, tgRes] = await Promise.all([
-        axios.get('/api/admin/ai/config'),
-        axios.get('/api/admin/ai/knowledge'),
-        axios.get('/api/admin/ai/analytics'),
-        axios.get('/api/admin/telegram/config'),
+        api.get('/admin/ai/config'),
+        api.get('/admin/ai/knowledge'),
+        api.get('/admin/ai/analytics'),
+        api.get('/admin/telegram/config'),
       ]);
       setConfig(cfgRes.data);
       setKnowledge(knRes.data);
@@ -58,7 +58,7 @@ export default function AiConfigPage() {
   const onFinish = async (values: any) => {
     setSaving(true);
     try {
-      const res = await axios.put('/api/admin/ai/config', values);
+      const res = await api.put('/admin/ai/config', values);
       message.success('AI configuration saved');
       setConfig(res.data);
       setSelectedProvider(values.provider);
@@ -72,7 +72,7 @@ export default function AiConfigPage() {
   const onTelegramFinish = async (values: any) => {
     setTgSaving(true);
     try {
-      const res = await axios.put('/api/admin/telegram/config', values);
+      const res = await api.put('/admin/telegram/config', values);
       message.success('Telegram configuration saved');
       setTelegram(res.data);
     } catch {
@@ -84,7 +84,7 @@ export default function AiConfigPage() {
 
   const handleTestTelegram = async () => {
     try {
-      const res = await axios.post('/api/admin/telegram/test');
+      const res = await api.post('/admin/telegram/test');
       if (res.data.success) {
         message.success('Test message sent! Check your Telegram.');
       } else {
@@ -97,7 +97,7 @@ export default function AiConfigPage() {
 
   const handleRebuild = async () => {
     try {
-      await axios.post('/api/admin/ai/knowledge/rebuild', { entries: [] });
+      await api.post('/admin/ai/knowledge/rebuild', { entries: [] });
       message.success('Knowledge base rebuilt from seed');
       fetchData();
     } catch {
@@ -138,6 +138,13 @@ export default function AiConfigPage() {
                 >
                   <Form.Item name="enabled" label="Enable Chatbot" valuePropName="checked">
                     <Switch />
+                  </Form.Item>
+
+                  <Form.Item name="chatMode" label="Chat Mode">
+                    <Radio.Group>
+                      <Radio value="chat">Chat (conversational)</Radio>
+                      <Radio value="response">Response (single Q&amp;A)</Radio>
+                    </Radio.Group>
                   </Form.Item>
 
                   <Form.Item name="provider" label="AI Provider" rules={[{ required: true }]}>
