@@ -8,6 +8,7 @@ import {
   SignalFilled,
   BarChartOutlined,
   AuditOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -21,6 +22,7 @@ const menuItems = [
   { key: '/signals', icon: <SignalFilled />, label: 'Signals' },
   { key: '/backtest', icon: <BarChartOutlined />, label: 'Backtesting' },
   { key: '/audit-logs', icon: <AuditOutlined />, label: 'Audit Logs' },
+  { key: '/ai-config', icon: <RobotOutlined />, label: 'Integrations' },
 ];
 
 export default function AppSidebar() {

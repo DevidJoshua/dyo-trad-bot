@@ -124,5 +124,75 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  chatSessions ChatSession[]
+
   @@map("users")
+}
+
+model AiConfiguration {
+  id               Int      @id @default(autoincrement())
+  enabled          Boolean  @default(true)
+  aiPilotEnabled   Boolean  @default(false) @map("ai_pilot_enabled")
+  provider         String   @default("openai")
+  apiKey           String   @default("")
+  apiEndpoint      String   @default("") @map("api_endpoint")
+  model            String   @default("gpt-4o-mini")
+  systemPrompt     String   @default("You are a helpful assistant for the TradBot platform.")
+  welcomeMessage   String   @default("Hello! How can I help you today?")
+  suggestedQuestions String @default("[]")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_configurations")
+}
+
+model TelegramConfig {
+  id        Int      @id @default(autoincrement())
+  enabled   Boolean  @default(false)
+  botToken  String   @default("") @map("bot_token")
+  chatId    String   @default("") @map("chat_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("telegram_configs")
+}
+
+model ChatSession {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @unique @map("session_id")
+  userId    Int?     @map("user_id")
+  metadata  String   @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User?         @relation(fields: [userId], references: [id])
+  messages  ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  sessionId Int      @map("session_id")
+  role      String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session   ChatSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, createdAt])
+  @@map("chat_messages")
+}
+
+model KnowledgeEntry {
+  id          Int      @id @default(autoincrement())
+  category    String
+  title       String
+  content     String
+  tags        String   @default("")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("knowledge_entries")
 }

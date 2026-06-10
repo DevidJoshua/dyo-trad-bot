@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout, Typography } from 'antd';
 import AppHeader from './components/AppHeader';
 import AppSidebar from './components/AppSidebar';
+import ChatWidget from './components/ChatWidget';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PositionsPage from './pages/PositionsPage';
@@ -11,6 +12,7 @@ import RiskPage from './pages/RiskPage';
 import SignalsPage from './pages/SignalsPage';
 import BacktestPage from './pages/BacktestPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import AiConfigPage from './pages/AiConfigPage';
 
 const { Content } = Layout;
 
@@ -34,9 +36,11 @@ function AppLayout() {
             <Route path="/signals" element={<SignalsPage />} />
             <Route path="/backtest" element={<BacktestPage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />
+            <Route path="/ai-config" element={<AiConfigPage />} />
           </Routes>
         </Content>
       </Layout>
+      <ChatWidget />
     </Layout>
   );
 }

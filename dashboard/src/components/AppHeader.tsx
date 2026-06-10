@@ -1,12 +1,39 @@
-import React from 'react';
-import { Layout, Typography, Button, Space } from 'antd';
-import { LogoutOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from 'react';
+import { Layout, Typography, Button, Space, Switch, Tag, message } from 'antd';
+import { LogoutOutlined, RobotOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const { Header } = Layout;
 
 export default function AppHeader() {
   const navigate = useNavigate();
+  const [aiPilotOn, setAiPilotOn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await axios.get('/api/admin/ai-pilot/status');
+        setAiPilotOn(res.data.enabled);
+      } catch {
+        // not critical
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStatus();
+  }, []);
+
+  const handleToggle = async (checked: boolean) => {
+    try {
+      const res = await axios.post('/api/admin/ai-pilot/toggle', { enabled: checked });
+      setAiPilotOn(res.data.enabled);
+      message[checked ? 'success' : 'warning'](`AI Pilot ${checked ? 'activated' : 'deactivated'}`);
+    } catch {
+      message.error('Failed to toggle AI Pilot');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -27,7 +54,21 @@ export default function AppHeader() {
       <Typography.Title level={4} style={{ margin: 0 }}>
         TradBot Admin
       </Typography.Title>
-      <Space>
+      <Space size="middle">
+        <Space>
+          <RobotOutlined style={{ fontSize: 16, color: aiPilotOn ? '#52c41a' : '#999' }} />
+          <Typography.Text strong style={{ fontSize: 13 }}>
+            AI Pilot
+          </Typography.Text>
+          <Switch
+            checked={aiPilotOn}
+            onChange={handleToggle}
+            loading={loading}
+            checkedChildren="ON"
+            unCheckedChildren="OFF"
+          />
+          {aiPilotOn && <Tag color="green" style={{ marginLeft: 4 }}>ACTIVE</Tag>}
+        </Space>
         <Button type="text" icon={<LogoutOutlined />} onClick={handleLogout}>
           Logout
         </Button>

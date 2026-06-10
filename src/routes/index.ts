@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import crypto from 'crypto';
 import { authenticate, authorize } from '../middleware/auth';
 import { authService } from '../modules/auth/AuthService';
 import { mt5Bridge } from '../modules/mt5-bridge/Mt5BridgeService';
@@ -8,8 +9,12 @@ import { riskManagementService } from '../modules/risk/RiskManagementService';
 import { orderManagementService } from '../modules/orders/OrderManagementService';
 import { backtestingService } from '../modules/backtesting/BacktestingService';
 import { aiAdvisorService } from '../modules/ai/AiAdvisorService';
-import { notificationService } from '../modules/notifications/NotificationService';
 import { auditService } from '../modules/audit/AuditService';
+import { notificationService } from '../modules/notifications/NotificationService';
+import { chatbotService } from '../modules/chatbot/ChatbotService';
+import { knowledgeService } from '../modules/chatbot/KnowledgeService';
+import { conversationService } from '../modules/chatbot/ConversationService';
+import { aiPilotService } from '../modules/chatbot/AiPilotService';
 import { prisma } from '../common/utils/prisma';
 import { logger } from '../common/utils/logger';
 
@@ -203,6 +208,138 @@ router.get('/metrics/mt5', authenticate, async (_req: Request, res: Response) =>
     res.json(info);
   } catch {
     res.json({ error: 'MT5 not connected' });
+  }
+});
+
+router.post('/chat', async (req: Request, res: Response) => {
+  try {
+    const { sessionId, message } = req.body;
+    if (!message) { res.status(400).json({ error: 'Message is required' }); return; }
+    const result = await chatbotService.chat(sessionId || crypto.randomUUID(), message);
+    res.json(result);
+  } catch (err) {
+    const msg = (err as Error).message;
+    if (msg.includes('disabled')) {
+      res.status(503).json({ error: msg });
+    } else {
+      res.status(500).json({ error: 'Chat failed', message: msg });
+    }
+  }
+});
+
+router.get('/chat/history', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.query;
+    if (!sessionId) { res.json([]); return; }
+    const history = await conversationService.getHistory(sessionId as string);
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
+router.get('/admin/ai/config', authenticate, authorize('ADMIN'), async (_req: Request, res: Response) => {
+  try {
+    const config = await chatbotService.getConfig();
+    if (config) {
+      const { apiKey, ...safe } = config;
+      res.json({ ...safe, apiKey: apiKey ? '••••••••' : '' });
+    } else {
+      res.json(null);
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch AI config' });
+  }
+});
+
+router.put('/admin/ai/config', authenticate, authorize('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const config = await chatbotService.updateConfig(req.body);
+    await auditService.log('UPDATE', 'AiConfiguration', config.id, 'AI config updated');
+    const { apiKey, ...safe } = config;
+    res.json({ ...safe, apiKey: apiKey ? '••••••••' : '' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update AI config' });
+  }
+});
+
+router.get('/admin/ai/knowledge', authenticate, authorize('ADMIN'), async (_req: Request, res: Response) => {
+  try {
+    const entries = await knowledgeService.getEntries();
+    res.json(entries);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch knowledge entries' });
+  }
+});
+
+router.post('/admin/ai/knowledge/rebuild', authenticate, authorize('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    await knowledgeService.rebuildKnowledge(req.body.entries || []);
+    await auditService.log('REBUILD', 'KnowledgeEntry', undefined, 'Knowledge base rebuilt');
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to rebuild knowledge' });
+  }
+});
+
+router.get('/admin/ai/analytics', authenticate, authorize('ADMIN'), async (_req: Request, res: Response) => {
+  try {
+    const [totalSessions, totalMessages, recentSessions] = await Promise.all([
+      conversationService.getSessionCount(),
+      conversationService.getMessageCount(),
+      conversationService.getRecentSessions(10),
+    ]);
+    res.json({ totalSessions, totalMessages, recentSessions });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+router.get('/admin/telegram/config', authenticate, authorize('ADMIN'), async (_req: Request, res: Response) => {
+  try {
+    const cfg = await notificationService.getConfig();
+    res.json(cfg);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch Telegram config' });
+  }
+});
+
+router.put('/admin/telegram/config', authenticate, authorize('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const cfg = await notificationService.updateConfig(req.body);
+    await auditService.log('UPDATE', 'TelegramConfig', undefined, 'Telegram config updated');
+    res.json(cfg);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update Telegram config' });
+  }
+});
+
+router.post('/admin/telegram/test', authenticate, authorize('ADMIN'), async (_req: Request, res: Response) => {
+  try {
+    const success = await notificationService.sendTestMessage();
+    res.json({ success });
+  } catch (err) {
+    res.status(500).json({ error: 'Test message failed' });
+  }
+});
+
+router.get('/admin/ai-pilot/status', authenticate, async (_req: Request, res: Response) => {
+  try {
+    const status = await aiPilotService.getStatus();
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get AI Pilot status' });
+  }
+});
+
+router.post('/admin/ai-pilot/toggle', authenticate, authorize('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const { enabled } = req.body;
+    const status = await aiPilotService.toggle(enabled);
+    await auditService.log('UPDATE', 'AiPilot', undefined, `AI Pilot ${enabled ? 'enabled' : 'disabled'}`);
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to toggle AI Pilot' });
   }
 });
 
