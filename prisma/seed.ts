@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
+
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
 
 async function main() {
   await prisma.strategy.createMany({
@@ -43,6 +48,16 @@ async function main() {
       accountNumber: '1001',
       server: 'ICMarkets-Demo',
       status: 'ACTIVE',
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'admin@tradbot.com' },
+    update: {},
+    create: {
+      email: 'admin@tradbot.com',
+      password: hashPassword('admin123'),
+      role: 'ADMIN',
     },
   });
 

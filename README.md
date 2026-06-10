@@ -54,8 +54,13 @@ npx prisma db push
 npx prisma db seed
 ```
 
-> If `prisma db seed` is not configured, run manually:
-> `npx ts-node prisma/seed.ts`
+> The seed command creates the admin user, 3 strategies (RSI, MA Cross, Breakout),
+> a default risk configuration, and a demo trading account.
+>
+> If `npx prisma db seed` is not configured, run manually:
+> ```bash
+> npx ts-node prisma/seed.ts
+> ```
 
 ### 5. Generate Prisma Client
 

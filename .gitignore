@@ -8,3 +8,4 @@ dashboard/node_modules/
 dashboard/dist/
 dashboard/.env
 prompt
+dashboard/package-lock.json
